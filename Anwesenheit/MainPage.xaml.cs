@@ -20,6 +20,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.UI.ViewManagement;
 
 namespace Anwesenheit
 {
@@ -31,6 +32,7 @@ namespace Anwesenheit
         public MainPage()
         {
             this.InitializeComponent();
+            ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(300, 300));
             Init();
         }
 
@@ -54,8 +56,9 @@ namespace Anwesenheit
             {
                 if(state.ContainsKey(person.Cardnr) && state[person.Cardnr] != person.Present)
                 {
+                    state[person.Cardnr] = person.Present;
                     UpdatetItemByPerson(person);
-                    ShowToast("Stauts Update", String.Format("{0} ist jetzt {1}", person.Name, person.Present ? "Anwesend" : "Abwesend"));
+                    ShowToast("Status Update", String.Format("{0} ist jetzt {1}", person.Name, person.Present ? "Anwesend" : "Abwesend"));
                 }
             }
                 
@@ -95,6 +98,21 @@ namespace Anwesenheit
                 Brush red = new SolidColorBrush(Color.FromArgb(255, 255, 75, 75));
                 Brush green = new SolidColorBrush(Color.FromArgb(255, 75, 255, 75));
                 Brush yellow = new SolidColorBrush(Color.FromArgb(255, 255, 255, 75));
+                Dictionary<string, string> icons = new Dictionary<string, string>
+                {
+                    { "Schule", "🎓" },
+                    { "Krankheit", "🚑" },
+                    { "Urlaub", "✈" }
+                };
+                string absenceReason = person.AbsenceReason.Length > 0 ? person.AbsenceReason : person.Dayprog == "Schule" ? "Schule" : "";
+                try
+                {
+                    absenceReason = absenceReason.Length > 0 ? icons[absenceReason] : "";
+                }
+                catch(Exception e)
+                {
+                    string error = e.Message;
+                }
 
                 ListViewItem listItem = (ListViewItem)MainListBox.FindName(person.Cardnr.ToString());
                 if (listItem == null)
@@ -107,8 +125,8 @@ namespace Anwesenheit
                         VerticalAlignment = VerticalAlignment.Stretch,
                         HorizontalAlignment = HorizontalAlignment.Stretch,
                         Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0)),
-                        Background = person.AbsenceReason.Length == 0 ? person.Present ? green : red : yellow,
-                        Content = person.Name + " " + person.AbsenceReason
+                        Background = person.AbsenceReason.Length == 0 && person.Dayprog != "Schule" ? person.Present ? green : red : yellow,
+                        Content = String.Format("{0} {1}", absenceReason, person.Name)
                     };
                     MainListBox.Items.Add(item);
                 }else
@@ -204,6 +222,16 @@ namespace Anwesenheit
             {
                 return false;
             }
+        }
+
+        private void MainListBox_SelectionChanged_1(object sender, SelectionChangedEventArgs e)
+        {
+            ListViewItem item = (ListViewItem)MainListBox.SelectedItem;
+            if (item != null)
+            {
+                item.IsSelected = false;
+            }
+
         }
     }
 }
