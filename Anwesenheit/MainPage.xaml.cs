@@ -102,9 +102,11 @@ namespace Anwesenheit
                 {
                     { "Schule", "🎓" },
                     { "Krankheit", "🚑" },
-                    { "Urlaub", "✈" }
+                    { "Urlaub", "✈" },
+                    { "Elternzeit", "👨‍👩‍👦" },
                 };
                 string absenceReason = person.AbsenceReason.Length > 0 ? person.AbsenceReason : person.Dayprog == "Schule" ? "Schule" : "";
+                string additionalInfos = HasBirthday(person.getBirthday()) ? "🎂" : "";
                 try
                 {
                     absenceReason = absenceReason.Length > 0 ? icons[absenceReason] : "";
@@ -117,6 +119,7 @@ namespace Anwesenheit
                 ListViewItem listItem = (ListViewItem)MainListBox.FindName(person.Cardnr.ToString());
                 if (listItem == null)
                 {
+
                     ListViewItem item = new ListViewItem
                     {
                         Name = person.Cardnr.ToString(),
@@ -126,7 +129,7 @@ namespace Anwesenheit
                         HorizontalAlignment = HorizontalAlignment.Stretch,
                         Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0)),
                         Background = person.AbsenceReason.Length == 0 && person.Dayprog != "Schule" ? person.Present ? green : red : yellow,
-                        Content = String.Format("{0} {1}", absenceReason, person.Name)
+                        Content = String.Format("{0} {1} {2}", absenceReason, additionalInfos, person.Name)
                     };
                     MainListBox.Items.Add(item);
                 }else
@@ -232,6 +235,15 @@ namespace Anwesenheit
                 item.IsSelected = false;
             }
 
+        }
+
+        public bool HasBirthday(DateTime birthday)
+        {
+            DateTime now = DateTime.Today;
+
+            bool test = birthday.Day == now.Day && birthday.Month == now.Month;
+
+            return test;
         }
     }
 }

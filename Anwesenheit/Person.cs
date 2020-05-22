@@ -43,9 +43,15 @@ namespace Anwesenheit
             }
 
         }
+
         public int Cardnr { get; set; }
         public bool Present { get; set; }
         public string Dayprog { get; set; }
         public string AbsenceReason { get; set; }
+
+        public DateTime getBirthday()
+        {
+            return this._birthday;
+        }
     }
 }
