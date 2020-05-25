@@ -1,3 +1,2 @@
 # Anwesenheit
-<p>Cert: DZiss
-<p>Link: https://a1b3e8.azurewebsites.net/
+<p>Link: https://www.microsoft.com/de-de/p/anwesenheit/9nvrh0mfldqs
