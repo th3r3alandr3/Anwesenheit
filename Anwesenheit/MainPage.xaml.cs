@@ -27,7 +27,7 @@ namespace Anwesenheit
     public sealed partial class MainPage : Page
     {
         private readonly Dictionary<int, bool> state = new Dictionary<int, bool>();
-        private readonly int[] excludedIds = new int[]{25, 26, 27, 32, 33};
+        private readonly int[] excludedIds = new int[]{25, 26, 27, 32, 33, 70};
         private string jsonUrL = "";
         public MainPage()
         {
