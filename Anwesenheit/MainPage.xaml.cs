@@ -31,8 +31,9 @@ namespace Anwesenheit
         private string jsonUrL = "";
         public MainPage()
         {
+
             this.InitializeComponent();
-            ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(300, 300));
+            ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(300, 744));
             Init();
         }
 
@@ -40,11 +41,18 @@ namespace Anwesenheit
         {
             jsonUrL = await GetURLAsync();
             Person[] persons = GetPersons(jsonUrL);
+            int defaultHeight = 0;
             foreach (Person person in persons)
             {
                 state.Add(person.Cardnr, person.Present);
                 UpdatetItemByPerson(person);
+                if (!excludedIds.Contains(person.Cardnr))
+                {
+                    defaultHeight += 62;
+                }
             }
+            ApplicationView.PreferredLaunchViewSize = new Size(300, defaultHeight);
+            ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
             Timer timer = new Timer(CheckStates);
             timer.Start();
         }
@@ -95,7 +103,9 @@ namespace Anwesenheit
         {
             if (!excludedIds.Contains(person.Cardnr))
             {
-                Brush red = new SolidColorBrush(Color.FromArgb(255, 255, 75, 75));
+                try
+                {
+                    Brush red = new SolidColorBrush(Color.FromArgb(255, 255, 75, 75));
                 Brush green = new SolidColorBrush(Color.FromArgb(255, 75, 255, 75));
                 Brush yellow = new SolidColorBrush(Color.FromArgb(255, 255, 255, 75));
                 Dictionary<string, string> icons = new Dictionary<string, string>
@@ -105,16 +115,11 @@ namespace Anwesenheit
                     { "Urlaub", "✈" },
                     { "Elternzeit", "👨‍👩‍👦" },
                 };
-                string absenceReason = person.AbsenceReason.Length > 0 ? person.AbsenceReason : person.Dayprog == "Schule" ? "Schule" : "";
-                string additionalInfos = HasBirthday(person.getBirthday()) ? "🎂" : "";
-                try
-                {
+
+                    string absenceReason = person.AbsenceReason != null && person.AbsenceReason.Length > 0 ? person.AbsenceReason : person.Dayprog != null && person.Dayprog == "Schule" ? "Schule" : "";
+                    string additionalInfos = HasBirthday(person.getBirthday()) ? "🎂" : "";
                     absenceReason = absenceReason.Length > 0 ? icons[absenceReason] : "";
-                }
-                catch(Exception e)
-                {
-                    string error = e.Message;
-                }
+
 
                 ListViewItem listItem = (ListViewItem)MainListBox.FindName(person.Cardnr.ToString());
                 if (listItem == null)
@@ -128,13 +133,18 @@ namespace Anwesenheit
                         VerticalAlignment = VerticalAlignment.Stretch,
                         HorizontalAlignment = HorizontalAlignment.Stretch,
                         Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0)),
-                        Background = person.AbsenceReason.Length == 0 && person.Dayprog != "Schule" ? person.Present ? green : red : yellow,
+                        Background = person.AbsenceReason == null || person.AbsenceReason.Length == 0 && person.Dayprog == null || person.Dayprog != "Schule" ? person.Present ? green : red : yellow,
                         Content = String.Format("{0} {1} {2}", absenceReason, additionalInfos, person.Name)
                     };
                     MainListBox.Items.Add(item);
                 }else
                 {
                     listItem.Background = person.AbsenceReason.Length == 0 ? person.Present ? green : red : yellow;
+                }
+                }
+                catch (Exception e)
+                {
+                    string error = e.Message;
                 }
             }
         }
