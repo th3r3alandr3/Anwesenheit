@@ -106,41 +106,42 @@ namespace Anwesenheit
                 try
                 {
                     Brush red = new SolidColorBrush(Color.FromArgb(255, 255, 75, 75));
-                Brush green = new SolidColorBrush(Color.FromArgb(255, 75, 255, 75));
-                Brush yellow = new SolidColorBrush(Color.FromArgb(255, 255, 255, 75));
-                Dictionary<string, string> icons = new Dictionary<string, string>
-                {
-                    { "Schule", "🎓" },
-                    { "Krankheit", "🚑" },
-                    { "Urlaub", "✈" },
-                    { "Elternzeit", "👨‍👩‍👦" },
-                };
+                    Brush green = new SolidColorBrush(Color.FromArgb(255, 75, 255, 75));
+                    Brush yellow = new SolidColorBrush(Color.FromArgb(255, 255, 255, 75));
+                    Dictionary<string, string> icons = new Dictionary<string, string>
+                    {
+                        { "Schule", "🎓" },
+                        { "Krankheit", "🚑" },
+                        { "Urlaub", "✈" },
+                        { "Elternzeit", "👨‍👩‍👦" },
+                    };
 
                     string absenceReason = person.AbsenceReason != null && person.AbsenceReason.Length > 0 ? person.AbsenceReason : person.Dayprog != null && person.Dayprog == "Schule" ? "Schule" : "";
                     string additionalInfos = HasBirthday(person.getBirthday()) ? "🎂" : "";
                     absenceReason = absenceReason.Length > 0 ? icons[absenceReason] : "";
 
 
-                ListViewItem listItem = (ListViewItem)MainListBox.FindName(person.Cardnr.ToString());
-                if (listItem == null)
-                {
-
-                    ListViewItem item = new ListViewItem
+                    ListViewItem listItem = (ListViewItem)MainListBox.FindName(person.Cardnr.ToString());
+                    if (listItem == null)
                     {
-                        Name = person.Cardnr.ToString(),
-                        HorizontalContentAlignment = HorizontalAlignment.Center,
-                        VerticalContentAlignment = VerticalAlignment.Center,
-                        VerticalAlignment = VerticalAlignment.Stretch,
-                        HorizontalAlignment = HorizontalAlignment.Stretch,
-                        Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0)),
-                        Background = person.AbsenceReason == null || person.AbsenceReason.Length == 0 && person.Dayprog == null || person.Dayprog != "Schule" ? person.Present ? green : red : yellow,
-                        Content = String.Format("{0} {1} {2}", absenceReason, additionalInfos, person.Name)
-                    };
-                    MainListBox.Items.Add(item);
-                }else
-                {
-                    listItem.Background = person.AbsenceReason.Length == 0 ? person.Present ? green : red : yellow;
-                }
+
+                        ListViewItem item = new ListViewItem
+                        {
+                            Name = person.Cardnr.ToString(),
+                            HorizontalContentAlignment = HorizontalAlignment.Center,
+                            VerticalContentAlignment = VerticalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Stretch,
+                            HorizontalAlignment = HorizontalAlignment.Stretch,
+                            Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0)),
+                            Background = absenceReason.Length <= 0 ? person.Present ? green : red : yellow,
+                            Content = String.Format("{0} {1} {2}", absenceReason, additionalInfos, person.Name)
+                        };
+                        MainListBox.Items.Add(item);
+                    }
+                    else
+                    {
+                        listItem.Background = absenceReason.Length <= 0 ? person.Present ? green : red : yellow;
+                    }
                 }
                 catch (Exception e)
                 {
