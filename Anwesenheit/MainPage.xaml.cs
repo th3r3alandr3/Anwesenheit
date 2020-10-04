@@ -31,7 +31,6 @@ namespace Anwesenheit
         private string jsonUrL = "";
         public MainPage()
         {
-
             this.InitializeComponent();
             ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(300, 744));
             Init();
@@ -79,7 +78,6 @@ namespace Anwesenheit
             Array.Sort<Person>(persons, new Comparison<Person>((p1, p2) => p1.Name.CompareTo(p2.Name)));
 
             return persons;
-
         }
 
         private static void ShowToast(string title, string content)
@@ -220,9 +218,13 @@ namespace Anwesenheit
             dialog.PrimaryButtonText = "Ok";
             dialog.SecondaryButtonText = "Cancel";
             if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
                 return inputTextBox.Text;
+            }
             else
+            {
                 return "";
+            }
         }
 
         private async Task<bool> ValidUrl(string url)
