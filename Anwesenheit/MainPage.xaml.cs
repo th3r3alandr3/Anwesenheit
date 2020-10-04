@@ -27,7 +27,7 @@ namespace Anwesenheit
     public sealed partial class MainPage : Page
     {
         private readonly Dictionary<int, bool> state = new Dictionary<int, bool>();
-        private readonly int[] excludedIds = new int[]{25, 26, 27, 32, 33, 70};
+        private readonly int[] excludedIds = new int[] { 25, 26, 27, 32, 33, 70 };
         private string jsonUrL = "";
         public MainPage()
         {
@@ -62,14 +62,14 @@ namespace Anwesenheit
             Person[] persons = GetPersons(jsonUrL);
             foreach (Person person in persons)
             {
-                if(state.ContainsKey(person.Cardnr) && state[person.Cardnr] != person.Present)
+                if (state.ContainsKey(person.Cardnr) && state[person.Cardnr] != person.Present)
                 {
                     state[person.Cardnr] = person.Present;
                     UpdatetItemByPerson(person);
                     ShowToast("Status Update", String.Format("{0} ist jetzt {1}", person.Name, person.Present ? "Anwesend" : "Abwesend"));
                 }
             }
-                
+
         }
 
         private Person[] GetPersons(string jsonUrL)
@@ -195,10 +195,11 @@ namespace Anwesenheit
             while (true)
             {
                 userInputURL = await InputTextDialogAsync(title);
-                if(await ValidUrl(userInputURL))
+                if (await ValidUrl(userInputURL))
                 {
                     break;
-                }else
+                }
+                else
                 {
                     title = "URL was invalid. Try again.";
                 }
