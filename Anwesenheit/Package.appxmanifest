@@ -7,15 +7,15 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="2d1eb9f4-327f-4987-a8ea-37dc6b33b108"
-    Publisher="CN=Andre Eidemann"
-    Version="1.0.3.0" />
+    Name="1856AndreEidemann.Anwesenheit"
+    Publisher="CN=9A469A37-8227-4819-817C-802B1AD07EEA"
+    Version="1.0.9.0" />
 
-  <mp:PhoneIdentity PhoneProductId="2d1eb9f4-327f-4987-a8ea-37dc6b33b108" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="984419ff-a1ce-4fa0-8293-e8d46ac1b5b9" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>Anwesenheit</DisplayName>
-    <PublisherDisplayName>Andre</PublisherDisplayName>
+    <PublisherDisplayName>Andre Eidemann</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
