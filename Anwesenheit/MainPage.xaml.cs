@@ -253,9 +253,7 @@ namespace Anwesenheit
         {
             DateTime now = DateTime.Today;
 
-            bool test = birthday.Day == now.Day && birthday.Month == now.Month;
-
-            return test;
+            return birthday.Day == now.Day && birthday.Month == now.Month;
         }
     }
 }
