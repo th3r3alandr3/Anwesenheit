@@ -17,41 +17,28 @@ namespace Anwesenheit
             get => String.Format("{0} {1}", _firstname, _lastname);
             set
             {
-                string[] names = value.Split(new string[] { ", " }, StringSplitOptions.None);
+                string[] names = value.Split(new string[] { " " }, StringSplitOptions.None);
                 if (names.Length > 0)
                 {
-                    _lastname = names[0];
+                    _firstname = names[0];
                     if (names.Length > 1)
                     {
-                        _firstname = names[1];
+                        _lastname = names[1];
                     }
                 }
 
             }
         }
 
-        private DateTime _birthday = new DateTime();
-        public string Birthday
-        {
-            get => String.Format("{0}.{1}.{2}", _birthday.Day, _birthday.Month, _birthday.Year);
-            set
-            {
-                if (value.Length > 0)
-                {
-                    _birthday = DateTime.ParseExact(value, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None);
-                }
-            }
-
-        }
+        public string Émail { get; set; }
+        public bool Present { get; set; }
+        public bool Active { get; set; }
+        public int Id { get; set; }
 
         public int Cardnr { get; set; }
-        public bool Present { get; set; }
-        public string Dayprog { get; set; }
         public string AbsenceReason { get; set; }
+        public string Dayprog { get; set; }
 
-        public DateTime getBirthday()
-        {
-            return this._birthday;
-        }
+        public string Birthday { get; set; }
     }
 }

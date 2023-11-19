@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,14 +21,19 @@ using Windows.UI;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.UI.ViewManagement;
+using aes;
 
 namespace Anwesenheit
 {
     public sealed partial class MainPage : Page
     {
+        private static string password = "gzE9et7#a8}X#-r~";
         private readonly Dictionary<int, bool> state = new Dictionary<int, bool>();
-        private readonly int[] excludedIds = new int[] { 25, 26, 27, 32, 33, 70 };
-        private string jsonUrL = "";
+        private readonly int[] excludedIds = new int[] { 135363 };
+        private Person[] persons;
+        private ClockodoAPI clockodoAPI;
+        private Dictionary<int, int> absences;
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -38,46 +43,53 @@ namespace Anwesenheit
 
         private async Task Init()
         {
-            jsonUrL = await GetURLAsync();
-            Person[] persons = GetPersons(jsonUrL);
+            this.clockodoAPI = await GetClockodoAPI();
+            var persons = await this.clockodoAPI.getUsers();
+
             int defaultHeight = 0;
             foreach (Person person in persons)
             {
-                state.Add(person.Cardnr, person.Present);
+                state.Add(person.Id, person.Present);
                 UpdatetItemByPerson(person);
-                if (!excludedIds.Contains(person.Cardnr))
+                if (person.Active && !excludedIds.Contains(person.Id))
                 {
                     defaultHeight += 62;
                 }
             }
             ApplicationView.PreferredLaunchViewSize = new Size(300, defaultHeight);
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
-            Timer timer = new Timer(CheckStates);
+            this.absences = await this.clockodoAPI.GetAbsences();
+            this.CheckStatesAsync();
+            Timer timer = new Timer(this.CheckStatesAsync);
             timer.Start();
+
+            Timer absenceTimer = new Timer(this.CheckAbsencesAsync, 3600);
+            absenceTimer.Start();
         }
 
-        public void CheckStates()
+        public async void CheckStatesAsync()
         {
-            Person[] persons = GetPersons(jsonUrL);
+            var newstate = await this.clockodoAPI.GetEntires(this.state);
+            var persons = await this.clockodoAPI.getUsers();
             foreach (Person person in persons)
             {
-                if (state.ContainsKey(person.Cardnr) && state[person.Cardnr] != person.Present)
+                if (person.Active && !excludedIds.Contains(person.Id) && state.ContainsKey(person.Id))
                 {
-                    state[person.Cardnr] = person.Present;
-                    UpdatetItemByPerson(person);
-                    ShowToast("Status Update", String.Format("{0} ist jetzt {1}", person.Name, person.Present ? "Anwesend" : "Abwesend"));
+                        person.Present = newstate[person.Id];
+                        if (state[person.Id] != person.Present)
+                        {
+                            state[person.Id] = person.Present;
+                            UpdatetItemByPerson(person);
+                            ShowToast("Status Update", String.Format("{0} ist jetzt {1}", person.Name, person.Present ? "Anwesend" : "Abwesend"));
+                        }
                 }
             }
 
         }
 
-        private Person[] GetPersons(string jsonUrL)
+        public async void CheckAbsencesAsync()
         {
-            string json = new WebClient().DownloadString(jsonUrL);
-            Person[] persons = JsonConvert.DeserializeObject<Person[]>(json);
-            Array.Sort<Person>(persons, new Comparison<Person>((p1, p2) => p1.Name.CompareTo(p2.Name)));
-
-            return persons;
+            this.absences = await this.clockodoAPI.GetAbsences();
         }
 
         private static void ShowToast(string title, string content)
@@ -99,40 +111,48 @@ namespace Anwesenheit
 
         private void UpdatetItemByPerson(Person person)
         {
-            if (!excludedIds.Contains(person.Cardnr))
+            if (person.Active && !excludedIds.Contains(person.Id))
             {
                 try
                 {
                     Brush red = new SolidColorBrush(Color.FromArgb(255, 255, 75, 75));
                     Brush green = new SolidColorBrush(Color.FromArgb(255, 75, 255, 75));
                     Brush yellow = new SolidColorBrush(Color.FromArgb(255, 255, 255, 75));
-                    Dictionary<string, string> icons = new Dictionary<string, string>
+                    Dictionary<int, string> icons = new Dictionary<int, string>
                     {
-                        { "Schule", "🎓" },
-                        { "Krankheit", "🚑" },
-                        { "Urlaub", "✈" },
-                        { "Elternzeit", "👨‍👩‍👦" },
+                        { 1, "✈" },
+                        { 2, "✈" },
+                        { 3, "✈" },
+                        { 4, "🚑" },
+                        { 5, "🚑" },
+                        { 6, "🎓" },                     
+                        { 7, "👨‍👩‍👦" },
+                        { 8, "🏠" },
+                        { 9, "🏠" },
                     };
 
-                    string absenceReason = person.AbsenceReason != null && person.AbsenceReason.Length > 0 ? person.AbsenceReason : person.Dayprog != null && person.Dayprog == "Schule" ? "Schule" : "";
-                    string additionalInfos = HasBirthday(person.getBirthday()) ? "🎂" : "";
-                    absenceReason = absenceReason.Length > 0 ? icons[absenceReason] : "";
+                    string absenceReason = "";
+
+                    if (this.absences != null)
+                    {
+                        absenceReason = this.absences.ContainsKey(person.Id) ? icons[this.absences[person.Id]] : "";
+                    }
 
 
-                    ListViewItem listItem = (ListViewItem)MainListBox.FindName(person.Cardnr.ToString());
+                    ListViewItem listItem = (ListViewItem)MainListBox.FindName(person.Id.ToString());
                     if (listItem == null)
                     {
 
                         ListViewItem item = new ListViewItem
                         {
-                            Name = person.Cardnr.ToString(),
+                            Name = person.Id.ToString(),
                             HorizontalContentAlignment = HorizontalAlignment.Center,
                             VerticalContentAlignment = VerticalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Stretch,
                             HorizontalAlignment = HorizontalAlignment.Stretch,
                             Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0)),
                             Background = absenceReason.Length <= 0 ? person.Present ? green : red : yellow,
-                            Content = String.Format("{0} {1} {2}", absenceReason, additionalInfos, person.Name)
+                            Content = String.Format("{0} {1}", absenceReason, person.Name)
                         };
                         MainListBox.Items.Add(item);
                     }
@@ -148,28 +168,31 @@ namespace Anwesenheit
             }
         }
 
-        private async Task<string> GetURLAsync()
+        private async Task<ClockodoAPI> GetClockodoAPI()
         {
             StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
-            string savedURL = "";
+            string data = "";
             string fileName = "data";
-
             if (await DoesFileExistAsync(storageFolder, fileName))
             {
                 StorageFile dataFile = await storageFolder.GetFileAsync(fileName);
-                savedURL = await FileIO.ReadTextAsync(dataFile);
-            }
+                string jsonString = Cryptography.Decrypt(await FileIO.ReadTextAsync(dataFile), password);
+                ClockodoAPI clockodoApi = JsonConvert.DeserializeObject<ClockodoAPI>(jsonString);
+
+                return clockodoApi;
+
+           }
             else
             {
-
-                string userInputUrl = await AskForUrl();
+                string userInput = await AskForCredentials();
                 StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-                StorageFile dataFile = await localFolder.CreateFileAsync(fileName, CreationCollisionOption.FailIfExists);
-                await FileIO.WriteTextAsync(dataFile, userInputUrl);
-                savedURL = userInputUrl;
-            }
+                StorageFile dataFile = await localFolder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+                await FileIO.WriteTextAsync(dataFile, Cryptography.Encrypt(userInput, password));
 
-            return savedURL;
+                ClockodoAPI clockodoApi = JsonConvert.DeserializeObject<ClockodoAPI>(userInput);
+
+                return clockodoApi;
+            }
         }
 
         private async Task<bool> DoesFileExistAsync(StorageFolder storageFolder, string fileName)
@@ -186,24 +209,36 @@ namespace Anwesenheit
         }
 
 
-        private async Task<string> AskForUrl()
+        private async Task<string> AskForCredentials()
         {
-            string userInputURL = "";
-            string title = "URL";
+            var userInputKey = "";
+            var userInputMail = "";
+            var titleKey = "API Key";
+            var titleMail = "Mail";
+
             while (true)
             {
-                userInputURL = await InputTextDialogAsync(title);
-                if (await ValidUrl(userInputURL))
+                userInputKey = await InputTextDialogAsync(titleKey);
+                userInputMail = await InputTextDialogAsync(titleMail);
+
+                if (await validateAPI(userInputKey, userInputMail))
                 {
                     break;
                 }
                 else
                 {
-                    title = "URL was invalid. Try again.";
+                    titleKey = "API Key was invalid. Try again.";
+                    titleMail = "Mail was invalid. Try again.";
                 }
             }
 
-            return userInputURL;
+            var credentials = new Dictionary<string, string>()
+            {
+                { "Mail", userInputMail },
+                { "ApiKey", userInputKey },
+            };
+
+            return JsonConvert.SerializeObject(credentials);
         }
 
         private async Task<string> InputTextDialogAsync(string title)
@@ -227,13 +262,13 @@ namespace Anwesenheit
             }
         }
 
-        private async Task<bool> ValidUrl(string url)
+        private async Task<bool> validateAPI(string userInputKey, string userInputMail)
         {
             try
             {
-                string json = await new WebClient().DownloadStringTaskAsync(url);
-                Person[] persons = JsonConvert.DeserializeObject<Person[]>(json);
-                return json.Length > 0;
+                ClockodoAPI clockodoAPI = new ClockodoAPI(userInputKey, userInputMail);
+                clockodoAPI.getUsers();
+                return true;
             }
             catch
             {
