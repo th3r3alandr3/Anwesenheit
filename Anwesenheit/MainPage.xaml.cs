@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -253,9 +253,13 @@ namespace Anwesenheit
             dialog.PrimaryButtonText = "Ok";
             dialog.SecondaryButtonText = "Cancel";
             if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+            {
                 return inputTextBox.Text;
+            }
             else
+            {
                 return "";
+            }
         }
 
         private async Task<bool> validateAPI(string userInputKey, string userInputMail)
